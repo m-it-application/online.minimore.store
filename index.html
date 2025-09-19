@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Online Minimore store</title>
-  <link rel="icon" href="https://lh3.googleUserContent.com/d/1n6WREaza8QhZFQFLvpZYD0wzYXSwK0aF" type="image/x-icon">
+  <title>Online Minimore Store</title>
+  <!-- แก้ favicon ให้ใช้ hosting ที่ถูกต้อง -->
+  <link rel="icon" href="https://lh3.googleUserContent.com/d/1n6WREaza8QhZFQFLvpZYD0wzYXSwK0aF" />
   <style>
     html, body {
       margin: 0;
@@ -44,5 +45,15 @@
       allowfullscreen>
     </iframe>
   </div>
+  <!-- ปรับ onload ให้ปลอดภัยขึ้น -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const iframe = document.querySelector('iframe');
+      iframe.onload = function () {
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'none';
+      };
+    });
+  </script>
 </body>
 </html>
