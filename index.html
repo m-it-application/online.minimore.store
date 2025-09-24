@@ -1,58 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Online Minimore Store</title>
-  <!-- แก้ favicon ให้ใช้ hosting ที่ถูกต้อง -->
   <link rel="icon" href="https://lh3.googleUserContent.com/d/1n6WREaza8QhZFQFLvpZYD0wzYXSwK0aF" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Lao&display=swap" rel="stylesheet">
+
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden;
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f0f2f5;
+      -webkit-font-smoothing: antialiased;
     }
+
+    /* 🔹 กล่องแจ้งเตือน */
+    .browser-notice {
+      display: none;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      opacity: 0;
+      max-width: 92%;
+      width: 580px;
+      background-color: #ffffff;
+      color: #2c3e50;
+      text-align: center;
+      padding: 18px 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+      z-index: 1000;
+      border-radius: 14px;
+      border: 1px solid #d6e9f9;
+      font-family: "Noto Serif Lao", serif;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      will-change: opacity, transform;
+    }
+
+    /* desktop: อยู่ด้านบน */
+    .browser-notice.desktop { top: 28px; }
+
+    /* mobile: อยู่ด้านล่าง */
+    .browser-notice.mobile {
+      bottom: 20px;
+      transform: translateX(-50%) translateY(40px);
+    }
+
+    /* แสดงผล (fade-in + slide) */
+    .browser-notice.show {
+      display: block;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ซ่อน */
+    .browser-notice.hide { opacity: 0; }
+    .browser-notice.desktop.hide { transform: translateX(-50%) translateY(-40px); }
+    .browser-notice.mobile.hide { transform: translateX(-50%) translateY(40px); }
+
+    .browser-notice h4 {
+      margin: 10px 0 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.5;
+    }
+    .browser-notice h4 img {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+    }
+    .browser-notice p {
+      margin: 6px 0 14px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #34495e;
+    }
+
+    .copy-button {
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background-color 0.3s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .copy-button:hover { background-color: #2980b9; }
+    .copy-button:active { transform: scale(0.96); }
+
+    /* 🔹 ปุ่มกากบาท */
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      font-weight: bold;
+      color: #666;
+      cursor: pointer;
+      transition: color 0.3s;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .close-btn:hover { color: #e74c3c; }
+
+    /* 🔹 Container + Loader */
     .iframe-container {
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      height: 100vh;
+      height: 100%;
+      transition: padding-top 0.5s ease;
     }
+    .iframe-container.with-notice { padding-top: 130px; }
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      visibility: hidden;
     }
     .loader {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 1.2rem;
-      color: #666;
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
       z-index: 10;
+    }
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* 🔹 Responsive */
+    @media (max-width: 600px) {
+      .browser-notice { font-size: 0.9rem; padding: 14px 16px; }
+      .browser-notice h4 { font-size: 0.95rem; gap: 4px; }
+      .copy-button { font-size: 0.85rem; padding: 6px 14px; }
+      .close-btn { font-size: 18px; top: 8px; right: 10px; }
     }
   </style>
 </head>
+
 <body>
-  <div class="iframe-container">
-    <div class="loader" id="loader">Loading app...</div>
-    <iframe 
-      src="https://script.google.com/macros/s/AKfycbz-dyc89gl6GlSsx5OqTE-Ob4X36hOGchmyB4gixoEPnpaWkoYXIN7J_JvbFuj4cHIq/exec" 
+
+  <div id="browser-notice" class="browser-notice">
+    <button class="close-btn" id="close-notice">×</button>
+    <h4>
+      💡 ແນະນຳໃຫ້ໃຊ້
+      <img src="https://lh3.googleusercontent.com/d/13Grt7NSQt0N9oPL4DzsGaP8qTDmP5R9F"
+           alt="Google Chrome">
+      Google Chrome
+      <span style="font-weight:normal;">(Android/Windows/Mac)</span>
+      ຫຼື
+      <img src="https://lh3.googleusercontent.com/d/1IITwujf-QO26YU26ubvYh4whSPf9S_Rm"
+           alt="Safari">
+      Safari <span style="font-weight:normal;">(iPhone/iPad)</span>
+    </h4>
+    <p>
+      ເພື່ອປະສົບການໃນການທ່ອງເວັບທີ່ລື່ນໄຫລ 👉 
+      ກະລຸນາ Copy ລິ້ງນີ້ໄປເປີດໃນ Google Chrome ຫຼື Safari
+    </p>
+    <button id="copy-link-btn" class="copy-button">Copy Link</button>
+  </div>
+
+  <div class="iframe-container" id="main-content">
+    <div class="loader" id="loader"></div>
+    <iframe
+      src="https://script.google.com/macros/s/AKfycbx3YrmpMrhN580En-u0o7cCVAm9YBVldYWDEtlRj4ydpbihiMr_-f2yrfSDTfO518GM/exec"
       title="M-IT Support"
-      onload="document.getElementById('loader').style.display='none';"
       allowfullscreen>
     </iframe>
   </div>
-  <!-- ปรับ onload ให้ปลอดภัยขึ้น -->
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const iframe = document.querySelector('iframe');
+      const loader = document.getElementById('loader');
+      const notice = document.getElementById('browser-notice');
+      const copyBtn = document.getElementById('copy-link-btn');
+      const closeBtn = document.getElementById('close-notice');
+      const mainContent = document.getElementById('main-content');
+      let hideTimeout;
+
+      function isChrome() {
+        const isChromium = window.chrome;
+        const winNav = window.navigator;
+        const vendorName = winNav.vendor;
+        const isOpera = typeof window.opr !== "undefined";
+        const isEdge = winNav.userAgent.indexOf("Edg") > -1;
+        const isIOSChrome = winNav.userAgent.match("CriOS");
+        return (isIOSChrome ||
+                (isChromium && vendorName === "Google Inc." && !isOpera && !isEdge));
+      }
+
+      function showNotice() {
+        if (window.innerWidth <= 600) {
+          notice.classList.add("mobile");
+        } else {
+          notice.classList.add("desktop");
+        }
+        notice.style.display = "block";
+        setTimeout(() => notice.classList.add("show"), 10);
+      }
+
+      function hideNotice() {
+        notice.classList.remove("show");
+        notice.classList.add("hide");
+        mainContent.classList.remove("with-notice");
+        setTimeout(() => {
+          notice.style.display = "none";
+          notice.classList.remove("hide", "desktop", "mobile");
+        }, 500);
+      }
+
+      if (!isChrome()) {
+        showNotice();
+        if (window.innerWidth > 600) {
+          mainContent.classList.add("with-notice");
+        }
+        hideTimeout = setTimeout(hideNotice, 10000);
+      }
+
       iframe.onload = function () {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'none';
+        loader.style.display = 'none';
+        iframe.style.visibility = 'visible';
       };
+
+      // ✅ Clipboard รองรับ Safari
+      copyBtn.addEventListener('click', function() {
+        const urlToCopy = 'https://m-it-application.github.io/test_01/';
+
+        function success() {
+          copyBtn.textContent = '✅ ສຳເນົາແລ້ວ';
+          setTimeout(() => copyBtn.textContent = 'Copy ລິ້ງ', 2000);
+          clearTimeout(hideTimeout);
+          hideNotice();
+        }
+
+        function fallback() {
+          const input = document.createElement('input');
+          input.value = urlToCopy;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand('copy');
+          document.body.removeChild(input);
+          success();
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(urlToCopy).then(success).catch(fallback);
+        } else {
+          fallback();
+        }
+      });
+
+      closeBtn.addEventListener('click', function() {
+        clearTimeout(hideTimeout);
+        hideNotice();
+      });
     });
   </script>
 </body>
